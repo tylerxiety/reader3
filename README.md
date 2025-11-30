@@ -1,3 +1,6 @@
+This repository is a fork of [Andrej Karpathy's reader3 ](https://github.com/karpathy/reader3), with additional changes:
+- add support for MOBI books
+
 # reader 3
 
 ![reader3](reader3.png)

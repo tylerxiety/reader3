@@ -6,9 +6,17 @@ dist/
 wheels/
 *.egg-info
 
+# macOS system files
+.DS_Store
+
+# llm
+.claude
+
 # Virtual environments
 .venv
 
 # Custom
 *_data/
 *.epub
+*.pdf
+*.mobi
