@@ -78,7 +78,7 @@
 
                        BETTER FIX: Use JavaScript to match filenames.
                     -->
-                    <a href="#" onclick="findAndGo('{{ item.file_href }}')"
+                    <a href="#" onclick="findAndGo('{{ item.href }}')"
                        class="toc-link {% if is_active %}active{% endif %}">
                         {{ item.title }}
                     </a>
@@ -140,15 +140,43 @@
             const idx = spineMap[cleanFile];
 
             if (idx !== undefined) {
-                let url = "/read/{{ book_id }}/" + idx;
-                // If there was an anchor, we could try to scroll to it,
-                // but simple page loads often lose anchor position without extra JS.
-                // Let's just go to the page.
-                window.location.href = url;
+                const currentIdx = {{ chapter_index }};
+
+                // If we're already on the correct page and there's an anchor, just scroll to it
+                if (idx === currentIdx && anchor) {
+                    const element = document.getElementById(anchor);
+                    if (element) {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    } else {
+                        console.log("Anchor not found:", anchor);
+                    }
+                } else {
+                    // Navigate to the page, and if there's an anchor, include it as a hash
+                    let url = "/read/{{ book_id }}/" + idx;
+                    if (anchor) {
+                        // Store the anchor in URL hash so we can scroll after page load
+                        url += "#" + anchor;
+                    }
+                    window.location.href = url;
+                }
             } else {
                 console.log("Could not find index for", filename);
             }
         }
+
+        // On page load, scroll to anchor if present in URL hash
+        window.addEventListener('DOMContentLoaded', function() {
+            const hash = window.location.hash.substring(1); // Remove the '#'
+            if (hash) {
+                // Use setTimeout to ensure content is fully rendered
+                setTimeout(function() {
+                    const element = document.getElementById(hash);
+                    if (element) {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }, 100);
+            }
+        });
     </script>
 </body>
 </html>
