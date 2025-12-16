@@ -122,6 +122,50 @@
     </div>
 
     <script>
+        // ========== AUTO-SAVE READING POSITION ==========
+        const STORAGE_KEY = 'reader3_positions';
+        const bookId = "{{ book_id }}";
+        const currentChapter = {{ chapter_index }};
+        const totalChapters = {{ book.spine|length }};
+
+        // Load saved positions from localStorage
+        function loadPositions() {
+            try {
+                const data = localStorage.getItem(STORAGE_KEY);
+                return data ? JSON.parse(data) : {};
+            } catch (e) {
+                console.error("Error loading positions:", e);
+                return {};
+            }
+        }
+
+        // Save reading position
+        function savePosition() {
+            try {
+                const mainDiv = document.getElementById('main');
+                const scrollPos = mainDiv.scrollTop;
+
+                const positions = loadPositions();
+                positions[bookId] = {
+                    chapter: currentChapter,
+                    scroll: scrollPos,
+                    total: totalChapters,
+                    updated_at: new Date().toISOString()
+                };
+
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            } catch (e) {
+                console.error("Error saving position:", e);
+            }
+        }
+
+        // Auto-save every 5 seconds
+        setInterval(savePosition, 5000);
+
+        // Also save on navigation (Previous/Next clicks)
+        window.addEventListener('beforeunload', savePosition);
+
+        // ========== TOC NAVIGATION ==========
         // Helper to map TOC filenames to Spine Indices
         // Pass the spine data from python to JS
         const spineMap = {
@@ -164,8 +208,27 @@
             }
         }
 
-        // On page load, scroll to anchor if present in URL hash
+        // ========== AUTO-RESUME & SCROLL RESTORATION ==========
         window.addEventListener('DOMContentLoaded', function() {
+            const positions = loadPositions();
+            const savedPos = positions[bookId];
+
+            // Auto-resume: if we're on chapter 0 and have a saved position for a different chapter
+            if (savedPos && savedPos.chapter !== currentChapter && currentChapter === 0) {
+                // Redirect to saved chapter without adding to browser history
+                window.location.replace('/read/' + bookId + '/' + savedPos.chapter);
+                return;
+            }
+
+            // Restore scroll position if we're on the saved chapter
+            if (savedPos && savedPos.chapter === currentChapter && savedPos.scroll) {
+                const mainDiv = document.getElementById('main');
+                setTimeout(function() {
+                    mainDiv.scrollTop = savedPos.scroll;
+                }, 100);
+            }
+
+            // Handle anchor scrolling (existing functionality)
             const hash = window.location.hash.substring(1); // Remove the '#'
             if (hash) {
                 // Use setTimeout to ensure content is fully rendered
@@ -174,7 +237,7 @@
                     if (element) {
                         element.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }
-                }, 100);
+                }, 200);
             }
         });
     </script>

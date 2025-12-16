@@ -26,16 +26,49 @@
 
         <div class="book-grid">
             {% for book in books %}
-            <div class="book-card">
+            <div class="book-card" data-book-id="{{ book.id }}" data-total-chapters="{{ book.chapters }}">
                 <div class="book-title">{{ book.title }}</div>
                 <div class="book-meta">
                     {{ book.author }}<br>
-                    {{ book.chapters }} sections
+                    <span class="chapter-info">{{ book.chapters }} sections</span>
                 </div>
-                <a href="/read/{{ book.id }}/0" class="btn">Read Book</a>
+                <a href="/read/{{ book.id }}/0" class="btn read-btn">Read Book</a>
             </div>
             {% endfor %}
         </div>
     </div>
+
+    <script>
+        // Load reading positions from localStorage
+        const STORAGE_KEY = 'reader3_positions';
+
+        function loadPositions() {
+            try {
+                const data = localStorage.getItem(STORAGE_KEY);
+                return data ? JSON.parse(data) : {};
+            } catch (e) {
+                console.error("Error loading positions:", e);
+                return {};
+            }
+        }
+
+        // Update book cards with reading progress
+        document.addEventListener('DOMContentLoaded', function() {
+            const positions = loadPositions();
+            const bookCards = document.querySelectorAll('.book-card');
+
+            bookCards.forEach(function(card) {
+                const bookId = card.getAttribute('data-book-id');
+                const totalChapters = parseInt(card.getAttribute('data-total-chapters'));
+                const savedPos = positions[bookId];
+
+                if (savedPos && savedPos.chapter !== undefined) {
+                    // Update button text
+                    const btn = card.querySelector('.read-btn');
+                    btn.textContent = 'Continue Reading';
+                }
+            });
+        });
+    </script>
 </body>
 </html>

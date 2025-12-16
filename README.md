@@ -1,5 +1,7 @@
 This repository is a fork of [Andrej Karpathy's reader3 ](https://github.com/karpathy/reader3), with additional changes:
 - add support for MOBI books
+- add a bookmark feature: Auto-Save Reading Position
+
 
 # reader 3
 
